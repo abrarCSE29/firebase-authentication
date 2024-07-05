@@ -23,12 +23,17 @@ function App() {
     isSignedIn: false,
   });
 
+  const [client,setClient] = useState({
+    email: "",
+    password: "",
+  })
+
   const handleSignin = () => {
     const auth = getAuth();
     signInWithPopup(auth, provider)
       .then((result) => {
         console.log(result.user);
-        const {displayName,photoURL} = result.user;
+        const { displayName, photoURL } = result.user;
         const signedinUser = {
           name: displayName,
           photoUrl: photoURL,
@@ -36,9 +41,37 @@ function App() {
         };
         setUserr(signedinUser);
       })
-      .catch((error) => {
-      });
+      .catch((error) => {});
   };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    console.log("Form submitted");
+  };
+
+  const handleChange = (e) => {
+    console.log(e.target.value);
+  };
+
+  const validateCredentials = (e) => {
+    let isFormValid = true;
+    if(e.target.name === "password"){
+      isFormValid = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(e.target.value);
+      console.log("This is password validation ", isFormValid);
+    }
+    if(e.target.name === "email"){
+      isFormValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.target.value);
+      console.log("This is email validation ", isFormValid);
+    }
+
+    if(isFormValid){
+      const newUserInfo = {...client};
+      newUserInfo[e.target.name] = e.target.value;
+      setClient(newUserInfo);
+    }
+
+
+  }
 
   return (
     <div className="App">
@@ -61,6 +94,15 @@ function App() {
           <button onClick={handleSignin}>Sign in</button>
         </div>
       )}
+
+      <h1>User Authentication</h1>
+      <p>Email : {client.email}</p>
+      <p>Password : {client.password}</p>
+      <form onSubmit={handleSubmit}>
+        <input type="email" placeholder="email" name="email" required onChange={handleChange} onBlur={validateCredentials} />
+        <input type="password" placeholder="password" name="password" required onBlur={validateCredentials} />
+        <input type="submit" value="Login" />
+      </form>
     </div>
   );
 }
