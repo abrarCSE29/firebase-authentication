@@ -1,5 +1,11 @@
 import "./App.css";
-import { GoogleAuthProvider, createUserWithEmailAndPassword, getAuth, signInWithPopup } from "firebase/auth";
+import {
+  GoogleAuthProvider,
+  createUserWithEmailAndPassword,
+  getAuth,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+} from "firebase/auth";
 import { initializeApp } from "firebase/app";
 import { useState } from "react";
 
@@ -28,6 +34,8 @@ function App() {
     password: "",
   });
 
+  const [newUser, setNewUser] = useState(false);
+
   const handleSignin = () => {
     const auth = getAuth();
     signInWithPopup(auth, provider)
@@ -45,18 +53,34 @@ function App() {
   };
 
   const handleSubmit = (e) => {
-    if (client.email && client.password) {
+    if (newUser) {
+      if (client.email && client.password) {
+        const auth = getAuth();
+        createUserWithEmailAndPassword(auth, client.email, client.password)
+          .then((userCredential) => {
+            // Signed up
+            const user = userCredential.user;
+            console.log("Signed up user");
+            // ...
+          })
+          .catch((error) => {
+            const errorCode = error.code;
+            const errorMessage = error.message;
+            // ..
+          });
+      }
+    } else {
       const auth = getAuth();
-      createUserWithEmailAndPassword(auth, client.email, client.password)
+      signInWithEmailAndPassword(auth, client.email, client.password)
         .then((userCredential) => {
-          // Signed up
+          // Signed in
           const user = userCredential.user;
+          console.log("Logged in " ,user);
           // ...
         })
         .catch((error) => {
           const errorCode = error.code;
           const errorMessage = error.message;
-          // ..
         });
     }
 
@@ -113,6 +137,19 @@ function App() {
       <h1>User Authentication</h1>
       <p>Email : {client.email}</p>
       <p>Password : {client.password}</p>
+
+      <input type="button" value="Login" onClick={() => setNewUser(false)} />
+      <input type="button" value="Signup" onClick={() => setNewUser(true)} />
+
+      {!newUser ? (
+        <div>
+          <h1>LogIn</h1>
+        </div>
+      ) : (
+        <div>
+          <h1>Signup</h1>
+        </div>
+      )}
       <form onSubmit={handleSubmit}>
         <input
           type="email"
