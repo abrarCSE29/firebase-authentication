@@ -1,5 +1,5 @@
 import "./App.css";
-import { GoogleAuthProvider, getAuth, signInWithPopup } from "firebase/auth";
+import { GoogleAuthProvider, createUserWithEmailAndPassword, getAuth, signInWithPopup } from "firebase/auth";
 import { initializeApp } from "firebase/app";
 import { useState } from "react";
 
@@ -23,10 +23,10 @@ function App() {
     isSignedIn: false,
   });
 
-  const [client,setClient] = useState({
+  const [client, setClient] = useState({
     email: "",
     password: "",
-  })
+  });
 
   const handleSignin = () => {
     const auth = getAuth();
@@ -45,8 +45,22 @@ function App() {
   };
 
   const handleSubmit = (e) => {
+    if (client.email && client.password) {
+      const auth = getAuth();
+      createUserWithEmailAndPassword(auth, client.email, client.password)
+        .then((userCredential) => {
+          // Signed up
+          const user = userCredential.user;
+          // ...
+        })
+        .catch((error) => {
+          const errorCode = error.code;
+          const errorMessage = error.message;
+          // ..
+        });
+    }
+
     e.preventDefault();
-    console.log("Form submitted");
   };
 
   const handleChange = (e) => {
@@ -55,23 +69,24 @@ function App() {
 
   const validateCredentials = (e) => {
     let isFormValid = true;
-    if(e.target.name === "password"){
-      isFormValid = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(e.target.value);
+    if (e.target.name === "password") {
+      isFormValid =
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(
+          e.target.value
+        );
       console.log("This is password validation ", isFormValid);
     }
-    if(e.target.name === "email"){
+    if (e.target.name === "email") {
       isFormValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.target.value);
       console.log("This is email validation ", isFormValid);
     }
 
-    if(isFormValid){
-      const newUserInfo = {...client};
+    if (isFormValid) {
+      const newUserInfo = { ...client };
       newUserInfo[e.target.name] = e.target.value;
       setClient(newUserInfo);
     }
-
-
-  }
+  };
 
   return (
     <div className="App">
@@ -99,8 +114,21 @@ function App() {
       <p>Email : {client.email}</p>
       <p>Password : {client.password}</p>
       <form onSubmit={handleSubmit}>
-        <input type="email" placeholder="email" name="email" required onChange={handleChange} onBlur={validateCredentials} />
-        <input type="password" placeholder="password" name="password" required onBlur={validateCredentials} />
+        <input
+          type="email"
+          placeholder="email"
+          name="email"
+          required
+          onChange={handleChange}
+          onBlur={validateCredentials}
+        />
+        <input
+          type="password"
+          placeholder="password"
+          name="password"
+          required
+          onBlur={validateCredentials}
+        />
         <input type="submit" value="Login" />
       </form>
     </div>
