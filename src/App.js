@@ -5,6 +5,7 @@ import {
   getAuth,
   signInWithEmailAndPassword,
   signInWithPopup,
+  updateProfile,
 } from "firebase/auth";
 import { initializeApp } from "firebase/app";
 import { useState } from "react";
@@ -23,34 +24,37 @@ const app = initializeApp(firebaseConfig);
 function App() {
   const provider = new GoogleAuthProvider();
 
-  const [userr, setUserr] = useState({
-    name: "",
-    photoURL: "",
-    isSignedIn: false,
-  });
+  // const [userr, setUserr] = useState({
+  //   name: "",
+  //   photoURL: "",
+  //   isSignedIn: false,
+  // });
 
   const [client, setClient] = useState({
+    name: "",
     email: "",
     password: "",
   });
+  const [validatedClient, setValidatedClient] = useState({ ...client });
 
+  const [message, setMessage] = useState("");
   const [newUser, setNewUser] = useState(false);
 
-  const handleSignin = () => {
-    const auth = getAuth();
-    signInWithPopup(auth, provider)
-      .then((result) => {
-        console.log(result.user);
-        const { displayName, photoURL } = result.user;
-        const signedinUser = {
-          name: displayName,
-          photoUrl: photoURL,
-          isSignedIn: true,
-        };
-        setUserr(signedinUser);
-      })
-      .catch((error) => {});
-  };
+  // const handleSignin = () => {
+  //   const auth = getAuth();
+  //   signInWithPopup(auth, provider)
+  //     .then((result) => {
+  //       console.log(result.user);
+  //       const { displayName, photoURL } = result.user;
+  //       const signedinUser = {
+  //         name: displayName,
+  //         photoUrl: photoURL,
+  //         isSignedIn: true,
+  //       };
+  //       setUserr(signedinUser);
+  //     })
+  //     .catch((error) => {});
+  // };
 
   const handleSubmit = (e) => {
     if (newUser) {
@@ -60,7 +64,8 @@ function App() {
           .then((userCredential) => {
             // Signed up
             const user = userCredential.user;
-            console.log("Signed up user");
+            updateUserName(client.name);
+            setMessage("User signed up");
             // ...
           })
           .catch((error) => {
@@ -68,6 +73,9 @@ function App() {
             const errorMessage = error.message;
             // ..
           });
+
+          
+        
       }
     } else {
       const auth = getAuth();
@@ -75,7 +83,9 @@ function App() {
         .then((userCredential) => {
           // Signed in
           const user = userCredential.user;
-          console.log("Logged in " ,user);
+          setMessage("User Signed in");
+          console.log(user);
+          setValidatedClient(user);
           // ...
         })
         .catch((error) => {
@@ -86,6 +96,20 @@ function App() {
 
     e.preventDefault();
   };
+
+  const updateUserName = (name) => {
+    const auth = getAuth();
+    updateProfile(auth.currentUser, {
+      displayName: name,
+    })
+      .then(() => {
+        console.log("username update successful");
+      })
+      .catch((error) => {
+        // An error occurred
+        // ...
+      });
+  }
 
   const handleChange = (e) => {
     console.log(e.target.value);
@@ -114,7 +138,7 @@ function App() {
 
   return (
     <div className="App">
-      {userr.isSignedIn ? (
+      {/* {userr.isSignedIn ? (
         <div>
           <button
             onClick={() =>
@@ -132,11 +156,13 @@ function App() {
           <h1>Please Sign in</h1>
           <button onClick={handleSignin}>Sign in</button>
         </div>
-      )}
+      )} */}
 
       <h1>User Authentication</h1>
+      <p>Name : {client.name}</p>
       <p>Email : {client.email}</p>
       <p>Password : {client.password}</p>
+
 
       <input type="button" value="Login" onClick={() => setNewUser(false)} />
       <input type="button" value="Signup" onClick={() => setNewUser(true)} />
@@ -148,6 +174,7 @@ function App() {
       ) : (
         <div>
           <h1>Signup</h1>
+          <input type="text" name="name" id="" placeholder="name" onBlur={validateCredentials} />
         </div>
       )}
       <form onSubmit={handleSubmit}>
@@ -168,6 +195,14 @@ function App() {
         />
         <input type="submit" value="Login" />
       </form>
+
+      {message && <p style={{ color: "black" }}>{message}</p>}
+
+      {validatedClient.email && (
+        <div>
+          {client.name},{client.email},{client.password};
+        </div>
+      )}
     </div>
   );
 }
